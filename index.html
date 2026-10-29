@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Store - Mua Sắm Tối Giản</title>
+    <style>
+        /* ========================================================
+           CƠ BẢN & RESET
+           ======================================================== */
+        :root {
+            --primary-color: #000000;
+            --text-color: #333333;
+            --text-light: #777777;
+            --bg-color: #ffffff;
+            --bg-light: #f8f9fa;
+            --border-color: #eeeeee;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; height: auto; display: block; }
+
+        /* ========================================================
+           HEADER & NAVIGATION
+           ======================================================== */
+        header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 5%;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; cursor: pointer; }
+        .header-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .cart-icon { font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: var(--transition); }
+        .cart-icon:hover { color: var(--text-light); }
+
+        /* ========================================================
+           BUTTONS & COMPONENTS
+           ======================================================== */
+        .container { padding: 3rem 5%; max-width: 1400px; margin: 0 auto; min-height: 70vh; }
+        .section-title { text-align: center; font-size: 2rem; margin-bottom: 2rem; }
+        
+        .btn {
+            display: inline-flex; justify-content: center; align-items: center;
+            background-color: var(--primary-color); color: #fff;
+            padding: 0.8rem 1.8rem; font-size: 1rem; font-weight: 600;
+            border: 1px solid var(--primary-color); border-radius: 4px;
+            cursor: pointer; transition: var(--transition);
+        }
+        .btn:hover { background-color: #333; transform: translateY(-2px); }
+        .btn-outline { background-color: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .btn-outline:hover { background-color: var(--primary-color); color: #fff; }
+        .btn-buy-now { background-color: #1e293b; color: #fff; border-color: #1e293b; }
+        .btn-buy-now:hover { background-color: #0f172a; }
+        
+        .back-btn {
+            background: none; border: none; color: var(--text-light); font-size: 1rem;
+            cursor: pointer; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+        .back-btn:hover { color: var(--primary-color); }
+
+        /* ========================================================
+           HERO & TOOLBAR (SEARCH + CATEGORIES)
+           ======================================================== */
+        .hero { background-color: var(--bg-light); padding: 5rem 5%; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .hero h1 { font-size: 2.8rem; margin-bottom: 1rem; color: var(--primary-color); }
+        .hero p { font-size: 1.1rem; color: var(--text-light); max-width: 600px; margin: 0 auto 2rem auto; }
+
+        .toolbar { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.5rem; align-items: center; }
+        .search-box { width: 100%; max-width: 500px; position: relative; }
+        .search-box input {
+            width: 100%; padding: 0.9rem 1.2rem; border-radius: 30px;
+            border: 1px solid #ddd; font-size: 1rem; outline: none;
+            transition: var(--transition); box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .search-box input:focus { border-color: var(--primary-color); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        .category-tabs { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
+        .tab-btn {
+            padding: 0.5rem 1.2rem; border-radius: 20px; border: 1px solid var(--border-color);
+            background: var(--bg-light); cursor: pointer; font-weight: 500; transition: var(--transition);
+        }
+        .tab-btn.active, .tab-btn:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+        /* ========================================================
+           QUẢNG CÁO (ADS STYLES)
+           ======================================================== */
+        .promo-banner {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 2rem 3rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .promo-banner::after {
+            content: "Quảng cáo";
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .promo-text h3 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .promo-text p { color: #94a3b8; font-size: 1rem; margin-bottom: 1rem; }
+        .promo-btn {
+            background-color: #ffffff;
+            color: #0f172a;
+            padding: 0.8rem 1.8rem;
+            border-radius: 4px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .promo-btn:hover { background-color: #f1f5f9; transform: scale(1.05); }
+
+        .ad-card {
+            background: linear-gradient(to bottom, #fffdf0, #fff7d6);
+            border: 2px dashed #eab308;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+        }
+        .ad-card:hover { transform: translateY(-8px); box-shadow: 0 12px 20px rgba(234, 179, 8, 0.15); }
+        .ad-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #eab308;
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        /* ========================================================
+           PRODUCT GRID & CARDS
+           ======================================================== */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2.5rem; }
+        .product-card { background: #fff; border-radius: 8px; overflow: hidden; transition: var(--transition); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .product-image { width: 100%; height: 250px; object-fit: cover; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        .product-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .product-category-tag { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 0.3rem; }
+        .product-title { font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 600; cursor: pointer; }
+        .product-price { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.8rem; }
+        .product-desc-short { color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.2rem; flex-grow: 1; }
+        .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: auto; }
+
+        /* ========================================================
+           VIEWS (Detail, Cart, Checkout)
+           ======================================================== */
+        #detail-view, #cart-view, #checkout-view { display: none; animation: fadeIn 0.4s ease; }
+        .detail-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+        .detail-image-wrapper { border-radius: 12px; overflow: hidden; background: var(--bg-light); }
+        .detail-title { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .detail-price { font-size: 1.8rem; font-weight: 700; margin-bottom: 2rem; color: var(--primary-color); }
+        .detail-desc { color: var(--text-light); font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.8; }
+        .add-to-cart-action { display: flex; gap: 1rem; align-items: center; margin-top: 2rem; flex-wrap: wrap; }
+        .quantity-input { width: 70px; height: 48px; text-align: center; font-size: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+
+        /* CART & CHECKOUT STYLES */
+        .cart-item { display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border-color); }
+        .cart-item img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; }
+        .cart-item-details { flex-grow: 1; }
+        .qty-btn { background: var(--bg-light); border: 1px solid var(--border-color); width: 30px; height: 30px; border-radius: 4px; cursor: pointer; }
+        .remove-btn { color: var(--danger-color); background: none; border: none; cursor: pointer; font-weight: 600; }
+        .cart-summary { margin-top: 2rem; background: var(--bg-light); padding: 2rem; border-radius: 8px; text-align: right; }
+        
+        .checkout-container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+
+        /* ========================================================
+           MODAL TẠO SẢN PHẨM MỚI
+           ======================================================== */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 1rem; }
+        .modal.active { display: flex; animation: fadeIn 0.3s ease; }
+        .modal-content { background: #fff; padding: 2.5rem; border-radius: 12px; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .close-modal { font-size: 1.5rem; cursor: pointer; background: none; border: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .detail-container { grid-template-columns: 1fr; gap: 2rem; }
+            .hero h1 { font-size: 2rem; }
+            .cart-item { flex-direction: column; align-items: flex-start; }
+            .card-actions { grid-template-columns: 1fr; }
+            .promo-banner { flex-direction: column; text-align: center; gap: 1.5rem; padding: 2rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo" onclick="app.goHome()">MINIMAL.</div>
+        <div class="header-actions">
+            <button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="app.openAddProductModal()">+ Tạo sản phẩm</button>
+            <div class="cart-icon" onclick="app.viewCart()">
+                🛒 <span id="cart-count-badge">(0)</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- 1. GIAO DIỆN TRANG CHỦ -->
+        <div id="home-view">
+            <section class="hero">
+                <h1>Định Hình Phong Cách Tối Giản</h1>
+                <p>Khám phá bộ sưu tập hơn 50 món đồ thiết yếu, tinh tế và chất lượng cao dành riêng cho cuộc sống hiện đại của bạn.</p>
+            </section>
+
+            <section id="products" class="container">
+                <!-- Thanh tìm kiếm & Danh mục sản phẩm -->
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="🔍 Tìm kiếm sản phẩm theo tên hoặc mô tả..." oninput="app.handleSearch(this.value)">
+                    </div>
+                    <div class="category-tabs" id="category-tabs">
+                        <!-- Render các tab danh mục động từ JS -->
+                    </div>
+                </div>
+
+                <!-- BANNER QUẢNG CÁO NGANG (ĐẶT TRƯỚC LƯỚI SẢN PHẨM) -->
+                <div class="promo-banner">
+                    <div class="promo-text">
+                        <h3>⚡ Siêu Sale Độc Quyền Mùa Hè</h3>
+                        <p>Giảm giá ngay 30% cho tất cả sản phẩm thuộc danh mục Công nghệ và Phụ kiện cao cấp. Áp dụng đến hết tuần này!</p>
+                    </div>
+                    <button class="promo-btn" onclick="app.selectCategory('Công nghệ')">Khám Phá Ngay</button>
+                </div>
+
+                <!-- Lưới danh sách sản phẩm -->
+                <div class="product-grid" id="product-grid"></div>
+            </section>
+        </div>
+
+        <!-- 2. GIAO DIỆN TRANG CHI TIẾT SẢN PHẨM -->
+        <div id="detail-view" class="container">
+            <button class="back-btn" onclick="app.goHome()">← Tiếp tục xem sản phẩm</button>
+            <div class="detail-container" id="detail-content"></div>
+        </div>
+
+        <!-- 3. GIAO DIỆN GIỎ HÀNG -->
+        <div id="cart-view" class="container">
+            <button class="back-btn" onclick="app.goHome()">← Tiếp tục mua sắm</button>
+            <h2 class="section-title">Giỏ hàng của bạn</h2>
+            <div id="cart-content"></div>
+        </div>
+
+        <!-- 4. GIAO DIỆN THANH TOÁN -->
+        <div id="checkout-view" class="container">
+            <button class="back-btn" onclick="app.viewCart()">← Quay lại giỏ hàng</button>
+            <div class="checkout-container">
+                <h2 class="section-title">Thông tin giao hàng</h2>
+                <div class="checkout-summary" id="checkout-summary-content" style="background:var(--bg-light); padding:1.5rem; border-radius:8px; margin-bottom:1.5rem;"></div>
+                <form id="checkout-form" onsubmit="app.processPayment(event)">
+                    <div class="form-group">
+                        <label>Họ và tên *</label>
+                        <input type="text" required placeholder="Nhập họ và tên">
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại *</label>
+                        <input type="tel" required placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ nhận hàng *</label>
+                        <textarea required rows="3" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%; height: 48px;">Xác nhận đặt hàng</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL TẠO SẢN PHẨM MỚI -->
+    <div class="modal" id="add-product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tạo Sản Phẩm Mới</h2>
+                <button class="close-modal" onclick="app.closeAddProductModal()">&times;</button>
+            </div>
+            <form id="add-product-form" onsubmit="app.handleAddProduct(event)">
+                <div class="form-group">
+                    <label>Tên sản phẩm *</label>
+                    <input type="text" id="new-name" required placeholder="Ví dụ: Đèn Bàn Cảm Ứng Smart">
+                </div>
+                <div class="form-group">
+                    <label>Giá tiền (VNĐ) *</label>
+                    <input type="number" id="new-price" required placeholder="Ví dụ: 850000">
+                </div>
+                <div class="form-group">
+                    <label>Danh mục *</label>
+                    <input type="text" id="new-category" required placeholder="Ví dụ: Thời trang, Công nghệ, Nội thất, Gia dụng, Phụ kiện">
+                </div>
+                <div class="form-group">
+                    <label>Link hình ảnh (URL)</label>
+                    <input type="url" id="new-image" placeholder="Để trống nếu muốn dùng ảnh mặc định">
+                </div>
+                <div class="form-group">
+                    <label>Mô tả ngắn *</label>
+                    <input type="text" id="new-short-desc" required placeholder="Mô tả 1 câu về sản phẩm">
+                </div>
+                <div class="form-group">
+                    <label>Mô tả chi tiết *</label>
+                    <textarea id="new-detail-desc" required rows="3" placeholder="Mô tả đầy đủ thông số, chất liệu..."></textarea>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Thêm Sản Phẩm</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const initialProducts = [
+            // --- THỜI TRANG (10 SP) ---
+            { id: 1, name: "Đồng Hồ Classic Black", category: "Thời trang", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80", shortDescription: "Thiết kế tối giản với mặt đen nam tính.", detailedDescription: "Chiếc đồng hồ Classic Black mang đến vẻ đẹp vượt thời gian. Kính sapphire chống trầy cùng dây da nguyên bản.", price: 1500000 },
+            { id: 2, name: "Kính Mát Minimalist", category: "Thời trang", image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&q=80", shortDescription: "Phong cách retro thanh lịch, bảo vệ mắt 100% UV.", detailedDescription: "Gọng hợp kim siêu nhẹ. Tròng phân cực cao cấp giảm chói và bảo vệ đôi mắt khỏi tia UV.", price: 850000 },
+            { id: 3, name: "Giày Sneaker Essential", category: "Thời trang", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80", shortDescription: "Giày thể thao êm ái, màu sắc nổi bật.", detailedDescription: "Sneaker thoải mái tuyệt đối nhờ đế đúc cao su nguyên khối. Lớp vải lưới thoáng khí giữ đôi chân luôn khô ráo.", price: 1200000 },
+            { id: 4, name: "Túi Da Tote Leather", category: "Thời trang", image: "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=600&q=80", shortDescription: "Rộng rãi, chất liệu da PU cao cấp.", detailedDescription: "Túi tote sức chứa lớn (vừa laptop 14 inch). Quai xách may gia cố chắc chắn, thiết kế thanh lịch.", price: 690000 },
+            { id: 5, name: "Mũ Bờm Wool Beanie", category: "Thời trang", image: "https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=600&q=80", shortDescription: "Nón len dệt kim ấm áp phong cách Hàn Quốc.", detailedDescription: "Nón len dệt thủ công từ sợi len acrylic mềm mịn, giữ ấm tốt và tạo điểm nhấn thời trang thu đông.", price: 290000 },
+            { id: 6, name: "Áo Thun Basic Cotton", category: "Thời trang", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80", shortDescription: "Áo thun trơn 100% cotton thoáng mát.", detailedDescription: "Thiết kế đơn giản, form dáng chuẩn, chất vải thấm hút mồ hôi tốt, phù hợp mặc hàng ngày.", price: 250000 },
+            { id: 7, name: "Quần Jeans Slim Fit", category: "Thời trang", image: "https://images.unsplash.com/photo-1542272604-780c8d52a5ce?w=600&q=80", shortDescription: "Quần jeans nam form slim fit hiện đại.", detailedDescription: "Chất liệu denim co giãn nhẹ, đường may tỉ mỉ, tôn dáng người mặc.", price: 550000 },
+            { id: 8, name: "Áo Khoác Bomber", category: "Thời trang", image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80", shortDescription: "Áo khoác bomber phong cách đường phố.", detailedDescription: "Chất liệu kaki dày dặn, lót trong êm ái, phù hợp cho những ngày se lạnh.", price: 750000 },
+            { id: 9, name: "Váy Liền Chữ A", category: "Thời trang", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80", shortDescription: "Váy dáng chữ A thanh lịch, nữ tính.", detailedDescription: "Thiết kế đơn giản tôn dáng, chất liệu lụa mềm mại, thích hợp đi chơi hoặc đi làm.", price: 480000 },
+            { id: 10, name: "Thắt Lưng Da Bò", category: "Thời trang", image: "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&q=80", shortDescription: "Thắt lưng nam da bò nguyên miếng.", detailedDescription: "Da bò cao cấp, khóa kim loại không gỉ, bền bỉ và sang trọng.", price: 350000 },
+
+            // --- CÔNG NGHỆ (10 SP) ---
+            { id: 11, name: "Tai Nghe Studio Pro", category: "Công nghệ", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80", shortDescription: "Âm thanh chân thực, chống ồn ANC.", detailedDescription: "Trải nghiệm âm nhạc tuyệt đỉnh. Thiết kế êm ái giúp bạn thoải mái đeo trong thời gian dài. Pin 30 giờ.", price: 2850000 },
+            { id: 12, name: "Bàn Phím Cơ Wireless", category: "Công nghệ", image: "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&q=80", shortDescription: "Gõ êm ái, kết nối Bluetooth 5.0 đa thiết bị.", detailedDescription: "Bàn phím cơ thiết kế layout 75% tối giản không gian. Switch cơ học gõ cực êm, pin sạc Type-C.", price: 1750000 },
+            { id: 13, name: "Loa Bluetooth Wooden", category: "Công nghệ", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&q=80", shortDescription: "Vỏ gỗ óc chó cổ điển, âm trầm mạnh mẽ.", detailedDescription: "Loa không dây vỏ gỗ tự nhiên chế tác tỉ mỉ. Âm thanh nổi 360度 sống động, thời lượng pin phát liên tục 12h.", price: 1450000 },
+            { id: 14, name: "Chuột Ergonomic", category: "Công nghệ", image: "https://images.unsplash.com/photo-1527814050087-3793815479bd?w=600&q=80", shortDescription: "Cầm nắm thoải mái, phím bấm Silent.", detailedDescription: "Chuột quang học không dây chuẩn ergonomic giúp giảm mỏi cổ tay khi làm việc lâu dài. Độ phân giải 2400 DPI.", price: 520000 },
+            { id: 15, name: "Sạc MagSafe 10000mAh", category: "Công nghệ", image: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80", shortDescription: "Hít từ tính thông minh, hỗ trợ sạc nhanh.", detailedDescription: "Pin sạc dự phòng không dây chuẩn MagSafe nhỏ gọn, dung lượng 10.000mAh đủ sạc đầy smartphone 2-3 lần.", price: 790000 },
+            { id: 16, name: "Màn Hình 27 Inch 4K", category: "Công nghệ", image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=600&q=80", shortDescription: "Độ phân giải siêu nét, màu sắc chân thực.", detailedDescription: "Màn hình IPS 27 inch, độ phân giải 4K, hỗ trợ HDR, viền siêu mỏng, tối ưu cho đồ họa và giải trí.", price: 6500000 },
+            { id: 17, name: "Ổ Cứng SSD 1TB", category: "Công nghệ", image: "https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=600&q=80", shortDescription: "Tốc độ đọc ghi siêu tốc.", detailedDescription: "Ổ cứng SSD NVMe PCIe Gen4, tốc độ đọc lên đến 7000MB/s, dung lượng 1TB thoải mái lưu trữ.", price: 2100000 },
+            { id: 18, name: "Webcam Full HD", category: "Công nghệ", image: "https://images.unsplash.com/photo-1587826584284-4b533db118a8?w=600&q=80", shortDescription: "Hình ảnh sắc nét cho họp trực tuyến.", detailedDescription: "Webcam độ phân giải 1080p, tích hợp micro chống ồn, tự động lấy nét.", price: 850000 },
+            { id: 19, name: "Đế Tản Nhiệt Laptop", category: "Công nghệ", image: "https://images.unsplash.com/photo-1601550267431-7b3bb6f1885b?w=600&q=80", shortDescription: "2 quạt lớn, làm mát hiệu quả.", detailedDescription: "Đế tản nhiệt hợp kim nhôm, 2 quạt siêu êm, có thể điều chỉnh độ nghiêng.", price: 320000 },
+            { id: 20, name: "Hub USB-C Đa Năng", category: "Công nghệ", image: "https://images.unsplash.com/photo-1628102491629-778571d893a3?w=600&q=80", shortDescription: "Mở rộng kết nối 7 in 1.", detailedDescription: "Hub Type-C hỗ trợ xuất hình HDMI 4K, cổng USB 3.0, khe đọc thẻ SD/TF, và sạc PD 100W.", price: 650000 },
+
+            // --- NỘI THẤT (10 SP) ---
+            { id: 21, name: "Sofa Bắc Âu Nordic", category: "Nội thất", image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&q=80", shortDescription: "Nội thất phong cách Scandinavian sang trọng.", detailedDescription: "Khung gỗ sồi, đệm mút D40 bọc vải nỉ cao cấp mang lại sự êm ái. Thiết kế chân cao tạo cảm giác rộng rãi.", price: 5500000 },
+            { id: 22, name: "Đèn Bàn Cảm Ứng Gỗ", category: "Nội thất", image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&q=80", shortDescription: "Tùy chỉnh 3 mức ánh sáng bảo vệ mắt.", detailedDescription: "Đèn làm việc thân gỗ tự nhiên kết hợp chao đèn kim loại sơn tĩnh điện. Điều khiển cảm ứng mượt mà.", price: 680000 },
+            { id: 23, name: "Bàn Làm Việc Chân Gỗ", category: "Nội thất", image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&q=80", shortDescription: "Mặt bàn gỗ phủ Melamine chống trầy.", detailedDescription: "Bàn góc làm việc tối giản kích thước 120x60cm, chân khung sắt sơn tĩnh điện chịu lực lên tới 100kg.", price: 2100000 },
+            { id: 24, name: "Ghế Eames Hiện Đại", category: "Nội thất", image: "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=600&q=80", shortDescription: "Thiết kế kinh điển, tựa lưng thoải mái.", detailedDescription: "Ghế nhựa PP dẻo dai, chân gỗ sồi chắc chắn đan chéo thép. Phù hợp làm ghế ăn, ghế cafe.", price: 350000 },
+            { id: 25, name: "Kệ Sách Tổ Ong", category: "Nội thất", image: "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=600&q=80", shortDescription: "Kệ sách treo tường độc đáo.", detailedDescription: "Gỗ MDF chống ẩm, thiết kế dạng lục giác ghép lại, trang trí không gian sinh động.", price: 420000 },
+            { id: 26, name: "Thảm Trải Sàn Lông Thỏ", category: "Nội thất", image: "https://images.unsplash.com/photo-1532323544230-7191fd51bc1b?w=600&q=80", shortDescription: "Thảm lông mềm mịn, chống trượt.", detailedDescription: "Sợi lông tổng hợp siêu mềm, đế cao su chống trơn, tạo điểm nhấn ấm áp cho phòng khách.", price: 850000 },
+            { id: 27, name: "Giường Ngủ Pallet Gỗ Thông", category: "Nội thất", image: "https://images.unsplash.com/photo-1505693314120-0d443867891c?w=600&q=80", shortDescription: "Phong cách mộc mạc, tiết kiệm không gian.", detailedDescription: "Gỗ thông nguyên bản đã qua xử lý mối mọt, thiết kế tháo lắp dễ dàng, trẻ trung.", price: 1200000 },
+            { id: 28, name: "Tủ Quần Áo Vải Khung Gỗ", category: "Nội thất", image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=600&q=80", shortDescription: "Gọn nhẹ, dễ tháo lắp di chuyển.", detailedDescription: "Khung gỗ sồi tự nhiên, áo bọc vải oxford chống bụi bẩn, chia nhiều ngăn chứa đồ linh hoạt.", price: 650000 },
+            { id: 29, name: "Gương Đứng Khung Gỗ", category: "Nội thất", image: "https://images.unsplash.com/photo-1618220179428-22790b46a0eb?w=600&q=80", shortDescription: "Gương soi toàn thân viền gỗ sồi.", detailedDescription: "Kính cường lực sáng rõ, chân tựa chống trượt, phù hợp đặt trong phòng ngủ hoặc góc thời trang.", price: 890000 },
+            { id: 30, name: "Tranh Canvas Trừu Tượng", category: "Nội thất", image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=600&q=80", shortDescription: "Tranh treo tường hiện đại set 3 bức.", detailedDescription: "In mực UV trên nền vải canvas bền màu, khung viền composite mỏng, tạo chiều sâu cho mảng tường.", price: 550000 },
+
+            // --- PHỤ KIỆN (10 SP) ---
+            { id: 31, name: "Ví Da Nam Bifold Slim", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&q=80", shortDescription: "Da bò thật 100%, thiết kế siêu mỏng nhẹ.", detailedDescription: "Ví đứng nhỏ gọn chứa vừa 8 thẻ ngân hàng và tiền mặt. Chất liệu da bò nguyên tấm bền đẹp theo thời gian.", price: 450000 },
+            { id: 32, name: "Balo Laptop Waterproof", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80", shortDescription: "Chống nước nhẹ, ngăn chống sốc 15.6 inch.", detailedDescription: "Balo chất liệu vải Canvas tráng chống thấm. Thiết kế nhiều ngăn tiện lợi cho đi học, đi làm.", price: 890000 },
+            { id: 33, name: "Đồng Hồ Cát Thủy Tinh", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1549468057-5b7fa1a41d7a?w=600&q=80", shortDescription: "Vật trang trí bàn làm việc tĩnh tâm.", detailedDescription: "Thời gian chảy 30 phút, cát mịn đều, khung kim loại mạ vàng sang trọng.", price: 250000 },
+            { id: 34, name: "Ô Cầm Tay Gấp Gọn", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1559564484-e48b3e040ff4?w=600&q=80", shortDescription: "Chống tia UV, khung sườn siêu nhẹ.", detailedDescription: "Ô dù tự động 2 chiều, vải dù phủ lớp nano chống thấm và cản sáng tuyệt đối.", price: 180000 },
+            { id: 35, name: "Bao Da Passport", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1589363460779-cb49b4c09d06?w=600&q=80", shortDescription: "Bảo vệ hộ chiếu, tích hợp ngăn ví thẻ.", detailedDescription: "Da PU dập vân cá sấu cao cấp, có khe gài vé máy bay và khe để sim du lịch tiện ích.", price: 120000 },
+            { id: 36, name: "Gối Cổ Chữ U Bọt Biển", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1541085388147-360e22705e45?w=600&q=80", shortDescription: "Nâng đỡ cổ vai gáy khi đi máy bay, ô tô.", detailedDescription: "Lõi memory foam đàn hồi chậm, vỏ nỉ nhung có thể tháo rời giặt sạch.", price: 220000 },
+            { id: 37, name: "Bút Ký Kim Loại Khắc Tên", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?w=600&q=80", shortDescription: "Bút bi mực nước sang trọng làm quà tặng.", detailedDescription: "Vỏ hợp kim nhám nguyên khối, ngòi bút trơn mượt, đi kèm hộp đựng bọc nhung.", price: 290000 },
+            { id: 38, name: "Móc Khóa Da Trơn", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1585350431872-3534b419fb3e?w=600&q=80", shortDescription: "Móc khóa xe hơi, móc túi xách thời trang.", detailedDescription: "Dây da thật tết thủ công, khoen đồng thau chống gỉ vintage.", price: 85000 },
+            { id: 39, name: "Khăn Quàng Cổ Lụa", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=600&q=80", shortDescription: "Khăn lụa tơ tằm họa tiết họa tiết lá mùa thu.", detailedDescription: "Kích thước 70x70cm, chất lụa mềm mát rủ tự nhiên, tạo điểm nhấn cho trang phục.", price: 350000 },
+            { id: 40, name: "Giá Đỡ Điện Thoại Để Bàn", category: "Phụ kiện", image: "https://images.unsplash.com/photo-1603539947678-cd3954ed515d?w=600&q=80", shortDescription: "Nhôm nguyên khối, điều chỉnh đa góc độ.", detailedDescription: "Chân đế bọc silicon chống trượt, phù hợp mọi dòng smartphone và máy tính bảng nhỏ.", price: 150000 },
+
+            // --- GIA DỤNG (10 SP) ---
+            { id: 41, name: "Bình Giữ Nhiệt Stainless", category: "Gia dụng", image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80", shortDescription: "Giữ nóng/lạnh 24h, dung lượng 500ml.", detailedDescription: "Bình Inox 304 an toàn sức khỏe. Thiết kế nắp đậy kín chống rò rỉ, sơn nhám.", price: 320000 },
+            { id: 42, name: "Ly Sứ Handmade", category: "Gia dụng", image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80", shortDescription: "Gốm sứ tráng men mờ thủ công cao cấp.", detailedDescription: "Cốc gốm sứ dung tích 350ml đường nét mộc mạc, lưu giữ hương vị trà, cà phê.", price: 180000 },
+            { id: 43, name: "Máy Phun Sương Tinh Dầu", category: "Gia dụng", image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&q=80", shortDescription: "Tạo ẩm không khí, kèm đèn LED.", detailedDescription: "Khuếch tán tinh dầu sóng siêu âm giúp bù ẩm, giảm khô da, mang hương thơm thư giãn.", price: 390000 },
+            { id: 44, name: "Bộ Hộp Đựng Thực Phẩm Thủy Tinh", category: "Gia dụng", image: "https://images.unsplash.com/photo-1590005028452-944d180ceeb3?w=600&q=80", shortDescription: "An toàn lò vi sóng, nắp khóa silicon kín khí.", detailedDescription: "Bộ 3 hộp vuông thủy tinh chịu nhiệt cao cấp, bảo quản thức ăn tươi ngon lâu hơn.", price: 280000 },
+            { id: 45, name: "Thớt Gỗ Teak Nguyên Khối", category: "Gia dụng", image: "https://images.unsplash.com/photo-1596489379668-3e4b772c72b2?w=600&q=80", shortDescription: "Chống nấm mốc, thân thiện dao sắc.", detailedDescription: "Gỗ Teak (giá tỵ) vân đẹp tự nhiên, chứa tinh dầu chống ẩm, độ cứng vừa phải không mẻ dao.", price: 450000 },
+            { id: 46, name: "Bộ Dụng Cụ Nấu Ăn Silicon", category: "Gia dụng", image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1?w=600&q=80", shortDescription: "11 món xẻng muôi vá chống trầy xước chảo.", detailedDescription: "Chất liệu silicon chịu nhiệt 230 độ C, cán gỗ sồi chống nóng cầm êm tay, kèm ống đựng.", price: 350000 },
+            { id: 47, name: "Máy Hút Bụi Cầm Tay Không Dây", category: "Gia dụng", image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&q=80", shortDescription: "Lực hút mạnh mẽ, thiết kế nhẹ gọn.", detailedDescription: "Động cơ không chổi than, màng lọc HEPA, dễ dàng vệ sinh xe hơi, sofa và ngóc ngách hẹp.", price: 950000 },
+            { id: 48, name: "Cân Điện Tử Nhà Bếp", category: "Gia dụng", image: "https://images.unsplash.com/photo-1590887326849-c1249e0b83e8?w=600&q=80", shortDescription: "Mặt kính cường lực, độ chính xác 1 gram.", detailedDescription: "Thiết kế mỏng hiện đại, màn hình LED ẩn, hỗ trợ cân trọng lượng nguyên liệu làm bánh hoàn hảo.", price: 160000 },
+            { id: 49, name: "Thùng Rác Cảm Ứng Thông Minh", category: "Gia dụng", image: "https://images.unsplash.com/photo-1595278453472-a7f436853ec5?w=600&q=80", shortDescription: "Tự động mở nắp trong khoảng cách 30cm.", detailedDescription: "Dung tích 15L, vỏ thép không gỉ chống vân tay, nắp đậy kín mùi hôi tuyệt đối.", price: 580000 },
+            { id: 50, name: "Bộ Chổi Lau Nhà Xoay 360", category: "Gia dụng", image: "https://images.unsplash.com/photo-1584820927498-cafe8c106dd3?w=600&q=80", shortDescription: "Lồng vắt inox, bông lau sợi microfiber siêu thấm.", detailedDescription: "Thiết kế thông minh tách nước sạch và bẩn, giúp công việc lau dọn nhà cửa nhẹ nhàng hơn bao giờ hết.", price: 290000 }
+        ];
+
+        const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+
+        const app = {
+            products: [...initialProducts],
+            cart: [],
+            selectedCategory: 'Tất cả',
+            searchQuery: '',
+            views: ['home-view', 'detail-view', 'cart-view', 'checkout-view'],
+
+            init() {
+                this.renderCategories();
+                this.renderProducts();
+                this.updateCartBadge();
+            },
+
+            switchView(viewId) {
+                this.views.forEach(v => document.getElementById(v).style.display = (v === viewId) ? 'block' : 'none');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            goHome() { this.switchView('home-view'); },
+
+            renderCategories() {
+                const categories = ['Tất cả', 'Thời trang', 'Công nghệ', 'Nội thất', 'Phụ kiện', 'Gia dụng'];
+                const container = document.getElementById('category-tabs');
+                container.innerHTML = categories.map(cat => `
+                    <button class="tab-btn ${cat === this.selectedCategory ? 'active' : ''}" 
+                            onclick="app.selectCategory('${cat}')">${cat}</button>
+                `).join('');
+            },
+
+            selectCategory(category) {
+                this.selectedCategory = category;
+                this.renderCategories();
+                this.renderProducts();
+            },
+
+            handleSearch(query) {
+                this.searchQuery = query.toLowerCase().trim();
+                this.renderProducts();
+            },
+
+            getFilteredProducts() {
+                return this.products.filter(p => {
+                    const matchCategory = this.selectedCategory === 'Tất cả' || p.category === this.selectedCategory;
+                    const matchSearch = p.name.toLowerCase().includes(this.searchQuery) || p.shortDescription.toLowerCase().includes(this.searchQuery);
+                    return matchCategory && matchSearch;
+                });
+            },
+
+            // --- RENDER GRID SẢN PHẨM & CHÈN QUẢNG CÁO XEN KẼ ---
+            renderProducts() {
+                const grid = document.getElementById('product-grid');
+                const filtered = this.getFilteredProducts();
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-light);">
+                        <h3>Không tìm thấy sản phẩm nào phù hợp</h3>
+                        <p style="margin-top:0.5rem;">Hãy thử tìm kiếm với từ khóa khác hoặc chuyển danh mục.</p>
+                    </div>`;
+                    return;
+                }
+
+                let htmlContent = '';
+                filtered.forEach((p, index) => {
+                    // Render thẻ sản phẩm thông thường
+                    htmlContent += `
+                        <div class="product-card">
+                            <img src="${p.image}" alt="${p.name}" class="product-image" onclick="app.showProductDetail(${p.id})">
+                            <div class="product-info">
+                                <span class="product-category-tag">${p.category}</span>
+                                <h3 class="product-title" onclick="app.showProductDetail(${p.id})">${p.name}</h3>
+                                <p class="product-price">${formatCurrency(p.price)}</p>
+                                <p class="product-desc-short">${p.shortDescription}</p>
+                                <div class="card-actions">
+                                    <button class="btn btn-outline" style="padding:0.5rem; font-size:0.9rem;" onclick="app.addToCart(${p.id})">Thêm giỏ</button>
+                                    <button class="btn btn-buy-now" style="padding:0.5rem; font-size:0.9rem;" onclick="app.buyNow(${p.id})">Mua ngay</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Cứ sau mỗi 4 sản phẩm, chèn 1 thẻ sản phẩm quảng cáo/tài trợ (Ad Card)
+                    if ((index + 1) % 4 === 0 && index < filtered.length - 1) {
+                        htmlContent += `
+                            <div class="ad-card">
+                                <span class="ad-badge">⭐ Tài trợ</span>
+                                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80" alt="Sản phẩm tài trợ" class="product-image" onclick="alert('Đây là sản phẩm quảng cáo tài trợ nổi bật!')">
+                                <div class="product-info">
+                                    <span class="product-category-tag" style="color: #b45309; font-weight:700;">Đặc biệt / Premium</span>
+                                    <h3 class="product-title" onclick="alert('Đây là sản phẩm quảng cáo tài trợ nổi bật!')">Bộ Sưu Tập Giới Hạn 2026</h3>
+                                    <p class="product-price" style="color: #b45309;">1.990.000 ₫</p>
+                                    <p class="product-desc-short">Phiên bản đặc biệt độc quyền được thiết kế bởi các nghệ sĩ tối giản hàng đầu.</p>
+                                    <div class="card-actions">
+                                        <button class="btn btn-outline" style="border-color:#b45309; color:#b45309; padding:0.5rem; font-size:0.9rem;" onclick="alert('Cảm ơn bạn đã quan tâm đến dịch vụ tài trợ!')">Xem ngay</button>
+                                        <button class="btn" style="background-color:#eab308; border-color:#eab308; color:#000; padding:0.5rem; font-size:0.9rem;" onclick="alert('Đã thêm sản phẩm tài trợ vào giỏ hàng!')">Đặt trước</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                grid.innerHTML = htmlContent;
+            },
+
+            showProductDetail(productId) {
+                const product = this.products.find(p => p.id === productId);
+                if (!product) return;
+
+                document.getElementById('detail-content').innerHTML = `
+                    <div class="detail-image-wrapper"><img src="${product.image}" class="detail-image"></div>
+                    <div class="detail-info">
+                        <span class="product-category-tag" style="font-size:0.9rem">${product.category}</span>
+                        <h1 class="detail-title">${product.name}</h1>
+                        <div class="detail-price">${formatCurrency(product.price)}</div>
+                        <p class="detail-desc">${product.detailedDescription}</p>
+                        <div class="add-to-cart-action">
+                            <input type="number" class="quantity-input" value="1" min="1" id="detail-qty-${product.id}">
+                            <button class="btn btn-outline" style="height:48px;" onclick="app.addToCart(${product.id}, true)">+ Thêm vào giỏ</button>
+                            <button class="btn btn-buy-now" style="height:48px;" onclick="app.buyNow(${product.id}, true)">⚡ Mua Ngay</button>
+                        </div>
+                    </div>
+                `;
+                this.switchView('detail-view');
+            },
+
+            addToCart(productId, isFromDetail = false) {
+                const product = this.products.find(p => p.id === productId);
+                let quantity = 1;
+
+                if (isFromDetail) {
+                    const qtyInput = document.getElementById(`detail-qty-${productId}`);
+                    if (qtyInput) quantity = parseInt(qtyInput.value) || 1;
+                }
+
+                const existingItem = this.cart.find(item => item.product.id === productId);
+                if (existingItem) existingItem.quantity += quantity;
+                else this.cart.push({ product, quantity });
+
+                this.updateCartBadge();
+                alert(`Đã thêm "${product.name}" vào giỏ hàng!`);
+            },
+
+            buyNow(productId, isFromDetail = false) {
+                const product = this.products.find(p => p.id === productId);
+                let quantity = 1;
+
+                if (isFromDetail) {
+                    const qtyInput = document.getElementById(`detail-qty-${productId}`);
+                    if (qtyInput) quantity = parseInt(qtyInput.value) || 1;
+                }
+
+                const existingItem = this.cart.find(item => item.product.id === productId);
+                if (existingItem) existingItem.quantity += quantity;
+                else this.cart.push({ product, quantity });
+
+                this.updateCartBadge();
+                this.viewCheckout();
+            },
+
+            updateCartBadge() {
+                const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+                document.getElementById('cart-count-badge').innerText = `(${totalItems})`;
+            },
+
+            viewCart() {
+                this.switchView('cart-view');
+                const cartContent = document.getElementById('cart-content');
+
+                if (this.cart.length === 0) {
+                    cartContent.innerHTML = `<div style="text-align:center; padding:4rem 0; color:var(--text-light);">
+                        <h2>Giỏ hàng đang trống</h2>
+                        <button class="btn" style="margin-top:1.5rem;" onclick="app.goHome()">Mua sắm ngay</button>
+                    </div>`;
+                    return;
+                }
+
+                let total = 0;
+                let html = this.cart.map((item, index) => {
+                    const itemTotal = item.product.price * item.quantity;
+                    total += itemTotal;
+                    return `
+                        <div class="cart-item">
+                            <img src="${item.product.image}" alt="${item.product.name}">
+                            <div class="cart-item-details">
+                                <div style="font-weight:600">${item.product.name}</div>
+                                <div style="color:var(--text-light)">${formatCurrency(item.product.price)}</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.5rem">
+                                <button class="qty-btn" onclick="app.updateQty(${index}, -1)">-</button>
+                                <span>${item.quantity}</span>
+                                <button class="qty-btn" onclick="app.updateQty(${index}, 1)">+</button>
+                            </div>
+                            <div style="font-weight:bold; width:120px; text-align:right;">${formatCurrency(itemTotal)}</div>
+                            <button class="remove-btn" onclick="app.removeItem(${index})">Xóa</button>
+                        </div>
+                    `;
+                }).join('');
+
+                html += `
+                    <div class="cart-summary">
+                        <h3>Tổng cộng: <span style="color:var(--primary-color)">${formatCurrency(total)}</span></h3>
+                        <button class="btn" style="margin-top:1rem;" onclick="app.viewCheckout()">Tiến hành Thanh toán</button>
+                    </div>
+                `;
+                cartContent.innerHTML = html;
+            },
+
+            updateQty(index, change) {
+                if (this.cart[index].quantity + change > 0) this.cart[index].quantity += change;
+                else this.cart.splice(index, 1);
+                
+                this.updateCartBadge();
+                this.viewCart();
+            },
+
+            removeItem(index) {
+                this.cart.splice(index, 1);
+                this.updateCartBadge();
+                this.viewCart();
+            },
+
+            viewCheckout() {
+                if (this.cart.length === 0) return this.viewCart();
+                this.switchView('checkout-view');
+                
+                const total = this.cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+                document.getElementById('checkout-summary-content').innerHTML = `
+                    <p>Tổng số lượng: <strong>${this.cart.reduce((sum, item) => sum + item.quantity, 0)} sản phẩm</strong></p>
+                    <p style="font-size: 1.2rem; margin-top: 0.5rem;">Số tiền cần thanh toán: <strong style="color:var(--primary-color);">${formatCurrency(total)}</strong></p>
+                `;
+            },
+
+            processPayment(e) {
+                e.preventDefault();
+                alert("🎉 Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.");
+                this.cart = [];
+                this.updateCartBadge();
+                document.getElementById('checkout-form').reset();
+                this.goHome();
+            },
+
+            openAddProductModal() { document.getElementById('add-product-modal').classList.add('active'); },
+            closeAddProductModal() { 
+                document.getElementById('add-product-modal').classList.remove('active'); 
+                document.getElementById('add-product-form').reset();
+            },
+
+            handleAddProduct(e) {
+                e.preventDefault();
+                const newProduct = {
+                    id: Date.now(),
+                    name: document.getElementById('new-name').value.trim(),
+                    price: parseFloat(document.getElementById('new-price').value),
+                    category: document.getElementById('new-category').value.trim(),
+                    image: document.getElementById('new-image').value.trim() || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80',
+                    shortDescription: document.getElementById('new-short-desc').value.trim(),
+                    detailedDescription: document.getElementById('new-detail-desc').value.trim()
+                };
+
+                this.products.unshift(newProduct);
+                this.renderCategories();
+                this.renderProducts();
+                this.closeAddProductModal();
+                alert("✨ Đã thêm sản phẩm mới thành công!");
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
